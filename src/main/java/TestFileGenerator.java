@@ -7,18 +7,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TestFileGenerator {
-    private static void expandFile(String baseDir, String fileName) throws IOException {
+    private static void expandFile(String baseDir, String fileName, boolean expandResultFile) throws IOException {
+        String inputBaseDir = baseDir;
+        if (expandResultFile) {
+            inputBaseDir += "\\results\\";
+        }
+
         // Find if we need to expand something
-        String expansionName = findExpansionName(baseDir, fileName);
+        String expansionName = findExpansionName(inputBaseDir, fileName);
 
         if (expansionName != null) {
             try (BufferedReader inputStream =
-                         new BufferedReader(new FileReader(baseDir + "\\" + fileName + ".txt"))) {
+                         new BufferedReader(new FileReader(inputBaseDir + "\\" + fileName + ".txt"))) {
 
                 long lineCount = 0;
                 String expansionFile = fileName + "." + expansionName;
                 PrintWriter outputStream = new PrintWriter(
-                        new FileWriter(baseDir + "\\" + expansionFile + ".txt"));
+                        new FileWriter(baseDir + "\\results\\" + expansionFile + ".txt"));
 
                 String line;
                 while ((line = inputStream.readLine()) != null) {
@@ -65,7 +70,7 @@ public class TestFileGenerator {
                 System.out.println("Written " + lineCount + " lines in " + expansionFile);
 
                 // Recursively call yourself on expanded file to see if further expansion is needed
-                expandFile(baseDir, expansionFile);
+                expandFile(baseDir, expansionFile, true);
             }
         }
     }
@@ -98,11 +103,11 @@ public class TestFileGenerator {
 
     public static void main(String[] args) throws IOException {
         if (args.length == 2) {
-            expandFile(args[0], args[1]);
+            expandFile(args[0], args[1], false);
         } else {
-            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testYouTube"); // 2248 tests
-            //expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\small", "testYouTube");
-            //expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testDataTemplate");
+            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testYouTube", false); // 2248 tests from 50 lines
+            //expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\small", "testYouTube", false);
+            //expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testDataTemplate", false);
         }
     }
 }
