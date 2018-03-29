@@ -3,115 +3,96 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TestFileGenerator {
-	
-//	static List<String> loadParameters(String parameterFileName) throws IOException {
-//		BufferedReader parameterInputStream = null;
-//		List<String> parameterList = new ArrayList<>();
-//
-//        try {
-//        	parameterInputStream = new BufferedReader(new FileReader(parameterFileName));
-//
-//            String feedMessage;
-//            while ((feedMessage = parameterInputStream.readLine()) != null) {
-//            	parameterList.add(feedMessage);
-//            }
-//        } finally {
-//            if (parameterInputStream != null) {
-//            	parameterInputStream.close();
-//            }
-//            if (parameterInputStream != null) {
-//            	parameterInputStream.close();
-//            }
-//        }
-//
-//        return parameterList;
-//	}
-	
-	private static void generateTestData(String baseDir, String fileName) throws IOException {
-		BufferedReader testDataTemplateInputStream = null;
-        PrintWriter uttTestDataOutputStream = null;
+    private static void expandFile(String baseDir, String fileName) throws IOException {
+        // Find if we need to expand something
+        String expansionName = findExpansionName(baseDir, fileName);
 
-        try {
-        	testDataTemplateInputStream = new BufferedReader(new FileReader(baseDir + "\\" + fileName + ".txt"));
+        if (expansionName != null) {
+            try (BufferedReader inputStream =
+                         new BufferedReader(new FileReader(baseDir + "\\" + fileName + ".txt"))) {
 
-            String line;
-            boolean expanded = false;
-            while ((line = testDataTemplateInputStream.readLine()) != null) {
-                System.out.println("line=" + line);
+                long lineCount = 0;
+                String expansionFile = fileName + "." + expansionName;
+                PrintWriter outputStream = new PrintWriter(
+                        new FileWriter(baseDir + "\\" + expansionFile + ".txt"));
 
-                Pattern pattern = Pattern.compile("\\[(\\S+)]");   // the pattern to search for
-                Matcher matcher = pattern.matcher(line);
+                String line;
+                while ((line = inputStream.readLine()) != null) {
+                    if (line.length() > 0) {
+                        System.out.println("expansionName = " + expansionName);
+                        String expansionFileName = baseDir + "\\" + expansionName + ".txt";
+                        BufferedReader expansionInputStream =
+                                new BufferedReader(new FileReader(expansionFileName));
+                        //System.out.println("expansionFileName=" + expansionFileName);
 
-                // if we find a match, get the group
-                if (matcher.find()) {
-                    expanded = true;
-                    String expansion = matcher.group(1);
-                    String expansionName = expansion.substring(0, expansion.length() - 1);
-                    System.out.println("expansionName=" + expansionName);
-                    String expansionFileName = baseDir + "\\" + expansionName + ".txt";
-                    BufferedReader expansionInputStream = new BufferedReader(new FileReader(expansionFileName));
-                    //System.out.println("expansionFileName=" + expansionFileName);
+                        //int column = Integer.parseInt(expansion.substring(expansion.length() - 1));
 
-                    int column = Integer.parseInt(expansion.substring(expansion.length() - 1));
-                    String expansionLine; // = expansionInputStream.readLine();
-                    //System.out.println("expansionLine=" + expansionLine);
-                    while ((expansionLine = expansionInputStream.readLine()) != null) {
-                        String newLine = line;
-                        String[] columns = expansionLine.split("\\t");
-                        //int i = 0;
-                        for (int i = 0; i < columns.length; i++) {
-                            System.out.println("columns[" + i + "]=" + columns[i]);
-                            newLine = newLine.replace("[" + expansionName + (i + 1) + "]", columns[i]);
-                            //System.out.println("newLine=" + newLine);
+                        // Try replacing all columns from the expansion file
+                        String expansionLine;
+                        //System.out.println("expansionLine=" + expansionLine);
+                        while ((expansionLine = expansionInputStream.readLine()) != null) {
+                            String newLine = line;
+                            String[] columns = expansionLine.split("\\t");
+                            for (int i = 0; i < columns.length; i++) {
+                                //System.out.println("columns[" + i + "] = " + columns[i]);
+                                newLine = newLine.replace("[" + expansionName + (i + 1) + "]", columns[i]);
+                                //System.out.println("newLine=" + newLine);
+                            }
+                            System.out.println("newLine = " + newLine);
+                            outputStream.println(newLine);
+                            lineCount++;
                         }
-                        System.out.println("newLine=" + newLine);
-                        if (uttTestDataOutputStream == null) {
-                            uttTestDataOutputStream = new PrintWriter(new FileWriter(baseDir + "\\" + fileName + ".gen.txt"));
-                        }
-                        uttTestDataOutputStream.println(newLine);
                     }
                 }
-            }
-            testDataTemplateInputStream.close();
-            uttTestDataOutputStream.close();
 
-            if (expanded) {
-                generateTestData(baseDir, fileName + ".gen");
-            }
-            //if (line.contains())
-//            String uttTemplate;
-//            while ((uttTemplate = uttTemplateInputStream.readLine()) != null) {
-//            	// Process data
-//            	// For each uttTemplate, expand test utterances by substituting feedMessage and generating test data
-//            	if (!uttTemplate.contains("PARAM_NAME")) {
-//            		uttExpandedOutputStream.println(uttTemplate);
-//            		continue; // No need to expand
-//            	}
-//            	for (String feedMessage : parameterList) {
-//            		String expandedTestData = testDataTemplateStr.replaceAll("UTTERANCE", expandedUtt);
-//            		expandedTestData = expandedTestData.replaceAll("PARAM_VALUE", feedMessage);
-//            		uttTestDataOutputStream.println(expandedTestData);
-//            	}
-//            }
-        } finally {
-            if (testDataTemplateInputStream != null) {
-            	testDataTemplateInputStream.close();
-            }
-            if (uttTestDataOutputStream != null) {
-            	uttTestDataOutputStream.close();
+                outputStream.close();
+                inputStream.close();
+
+                System.out.println("Written " + lineCount + " lines in " + expansionFile);
+
+                // Recursively call yourself on expanded file to see if further expansion is needed
+                expandFile(baseDir, expansionFile);
             }
         }
     }
-	
-	public static void main(String[] args) throws IOException {
-		//String uttTemplateFileName = ; //args[0];
-		generateTestData("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testDataTemplate");
+
+    private static String findExpansionName(String baseDir, String fileName) throws IOException {
+        String expansionName = null;
+        try (BufferedReader inputStream =
+                     new BufferedReader(new FileReader(baseDir + "\\" + fileName + ".txt"))){
+
+        	String line;
+            while ((line = inputStream.readLine()) != null) {
+                if (line.length() > 0) {
+                    //System.out.println("line = " + line);
+
+                    Pattern pattern = Pattern.compile("\\[(\\S+)]");   // the pattern to search for
+                    Matcher matcher = pattern.matcher(line);
+
+                    // if we find a match, get expansion from the regex group
+                    if (matcher.find()) {
+                        String expansion = matcher.group(1);
+                        expansionName = expansion.substring(0, expansion.length() - 1);
+                        break;
+                    }
+                }
+            }
+            inputStream.close();
+        }
+        return expansionName;
     }
-	
+
+    public static void main(String[] args) throws IOException {
+        if (args.length == 2) {
+            expandFile(args[0], args[1]);
+        } else {
+            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testYouTube"); // 2248 tests
+            //expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\small", "testYouTube");
+            //expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testDataTemplate");
+        }
+    }
 }
