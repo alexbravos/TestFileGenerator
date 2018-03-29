@@ -34,6 +34,7 @@ public class TestFileGenerator {
                         // Try replacing all columns from the expansion file
                         String expansionLine;
                         //System.out.println("expansionLine=" + expansionLine);
+                        boolean lineExpanded = false;
                         while ((expansionLine = expansionInputStream.readLine()) != null) {
                             String newLine = line;
                             String[] columns = expansionLine.split("\\t");
@@ -43,7 +44,16 @@ public class TestFileGenerator {
                                 //System.out.println("newLine=" + newLine);
                             }
                             System.out.println("newLine = " + newLine);
-                            outputStream.println(newLine);
+                            // Write a new line only if it has been expanded
+                            if (!newLine.equals(line)) {
+                                outputStream.println(newLine);
+                                lineCount++;
+                                lineExpanded = true;
+                            }
+                        }
+                        // Need to write out not expanded lines too
+                        if (!lineExpanded) {
+                            outputStream.println(line);
                             lineCount++;
                         }
                     }
