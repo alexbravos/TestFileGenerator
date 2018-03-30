@@ -17,6 +17,8 @@ public class TestFileGenerator {
         String expansionName = findExpansionName(inputBaseDir, fileName);
 
         if (expansionName != null) {
+            System.out.println("expansionName = " + expansionName);
+
             try (BufferedReader inputStream =
                          new BufferedReader(new FileReader(inputBaseDir + "\\" + fileName + ".txt"))) {
 
@@ -28,7 +30,6 @@ public class TestFileGenerator {
                 String line;
                 while ((line = inputStream.readLine()) != null) {
                     if (line.length() > 0) {
-                        System.out.println("expansionName = " + expansionName);
                         String expansionFileName = baseDir + "\\" + expansionName + ".txt";
                         BufferedReader expansionInputStream =
                                 new BufferedReader(new FileReader(expansionFileName));
@@ -48,9 +49,9 @@ public class TestFileGenerator {
                                 newLine = newLine.replace("[" + expansionName + (i + 1) + "]", columns[i]);
                                 //System.out.println("newLine=" + newLine);
                             }
-                            System.out.println("newLine = " + newLine);
                             // Write a new line only if it has been expanded
                             if (!newLine.equals(line)) {
+                                System.out.println(newLine);
                                 outputStream.println(newLine);
                                 lineCount++;
                                 lineExpanded = true;
@@ -65,7 +66,7 @@ public class TestFileGenerator {
                 }
 
                 outputStream.close();
-                inputStream.close();
+                //inputStream.close();
 
                 System.out.println("Written " + lineCount + " lines in " + expansionFile);
 
@@ -96,7 +97,7 @@ public class TestFileGenerator {
                     }
                 }
             }
-            inputStream.close();
+            // inputStream.close();
         }
         return expansionName;
     }
