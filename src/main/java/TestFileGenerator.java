@@ -3,11 +3,47 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TestFileGenerator {
-    private static void expandFile(String baseDir, String fileName, boolean expandResultFile) throws IOException {
+    private static void expandFiles(String baseDir, String fileName) throws IOException {
+        try (BufferedReader inputStream =
+                     new BufferedReader(new FileReader(baseDir + "\\" + fileName + ".txt"))){
+
+            String line = inputStream.readLine();
+            // If this is not a container file, just expand this file
+            if (line != null) {
+                if (!line.equals("#TestFileGenerator container#")) {
+                    expandFile(baseDir, fileName, false);
+                    return;
+                }
+
+                ArrayList<String> lines = new ArrayList<>();
+                // This is a container file
+                do {
+                    //System.out.println("line = " + line);
+                    // Expand all not commented lines
+                    if (line.length() > 0 && !line.substring(0, 1).equals("#")) {
+                        ArrayList<String> newLines = expandFile(baseDir, line, false);
+                        System.out.println("got " + newLines.size() + " lines from " + line);
+                        lines.addAll(newLines);
+                    }
+                } while ((line = inputStream.readLine()) != null);
+
+                String resultsFileName = "\\results_" + fileName + ".txt";
+                PrintWriter outputStream = new PrintWriter(new FileWriter(baseDir + resultsFileName));
+                for (String outputLine : lines) {
+                    outputStream.println(outputLine);
+                }
+                System.out.println("Written " + lines.size() + " lines in " + resultsFileName);
+                outputStream.close();
+            }
+        }
+    }
+
+    private static ArrayList<String> expandFile(String baseDir, String fileName, boolean expandResultFile) throws IOException {
         String inputBaseDir = baseDir;
         if (expandResultFile) {
             inputBaseDir += "\\results\\";
@@ -16,12 +52,23 @@ public class TestFileGenerator {
         // Find if we need to expand something
         String expansionName = findExpansionName(inputBaseDir, fileName);
 
-        if (expansionName != null) {
+        ArrayList<String> outputLines;
+
+        // If there is nothing to expand, just return all lines in the file
+        String inputFileName = inputBaseDir + "\\" + fileName + ".txt";
+        if (expansionName == null) {
+            try (BufferedReader inputStream = new BufferedReader(new FileReader(inputFileName))) {
+                outputLines = new ArrayList<>();
+                String line;
+                while ((line = inputStream.readLine()) != null) {
+                    outputLines.add(line);
+                }
+                System.out.println("added " + outputLines.size() + " lines from " + inputFileName);
+            }
+        } else {
             System.out.println("expansionName = " + expansionName);
 
-            try (BufferedReader inputStream =
-                         new BufferedReader(new FileReader(inputBaseDir + "\\" + fileName + ".txt"))) {
-
+            try (BufferedReader inputStream = new BufferedReader(new FileReader(inputFileName))) {
                 long lineCount = 0;
                 String expansionFile = fileName + "." + expansionName;
                 PrintWriter outputStream = new PrintWriter(
@@ -51,7 +98,7 @@ public class TestFileGenerator {
                             }
                             // Write a new line only if it has been expanded
                             if (!newLine.equals(line)) {
-                                System.out.println(newLine);
+                                //System.out.println(newLine);
                                 outputStream.println(newLine);
                                 lineCount++;
                                 lineExpanded = true;
@@ -71,9 +118,11 @@ public class TestFileGenerator {
                 System.out.println("Written " + lineCount + " lines in " + expansionFile);
 
                 // Recursively call yourself on expanded file to see if further expansion is needed
-                expandFile(baseDir, expansionFile, true);
+                outputLines = expandFile(baseDir, expansionFile, true);
             }
         }
+
+        return outputLines;
     }
 
     private static String findExpansionName(String baseDir, String fileName) throws IOException {
@@ -104,17 +153,14 @@ public class TestFileGenerator {
 
     public static void main(String[] args) throws IOException {
         if (args.length == 2) {
-            expandFile(args[0], args[1], false);
+            expandFiles(args[0], args[1]);
         } else {
-            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube", false); // 2248 tests from 50 lines
-            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Play", false); // 2248 tests from 50 lines
-            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Find-OrderBy", false); // 2248 tests from 50 lines
-            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Find-ResourceType", false); // 2248 tests from 50 lines
-            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Find-VideoType", false); // 2248 tests from 50 lines
-            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Find-Time", false); // 2248 tests from 50 lines
-            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Find-Time-combinations", false); // 2248 tests from 50 lines
-//expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\small", "testYouTube", false);
-            //expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testDataTemplate", false);
+            //expandFiles("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-all-old");
+            expandFiles("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-all");
+
+            //expandFiles("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\small", "testYouTube");
+            //expandFiles("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testYouTube-Play"); // 2248 tests from 50 lines
+            //expandFiles("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testYouTube-Find-resourceType");
         }
     }
 }
