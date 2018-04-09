@@ -30,7 +30,7 @@ public class TestFileGenerator {
                 String line;
                 while ((line = inputStream.readLine()) != null) {
                     if (line.length() > 0) {
-                        String expansionFileName = baseDir + "\\" + expansionName + ".txt";
+                        String expansionFileName = baseDir + "\\variations\\" + expansionName + ".txt";
                         BufferedReader expansionInputStream =
                                 new BufferedReader(new FileReader(expansionFileName));
                         //System.out.println("expansionFileName=" + expansionFileName);
@@ -89,7 +89,7 @@ public class TestFileGenerator {
                     Pattern pattern = Pattern.compile("\\[(\\S+)]");   // the pattern to search for
                     Matcher matcher = pattern.matcher(line);
 
-                    // if we find a match, get expansion from the regex group
+                    // If we find a match, get expansion name from the regex group
                     if (matcher.find()) {
                         String expansion = matcher.group(1);
                         expansionName = expansion.substring(0, expansion.length() - 1);
@@ -106,8 +106,14 @@ public class TestFileGenerator {
         if (args.length == 2) {
             expandFile(args[0], args[1], false);
         } else {
-            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testYouTube", false); // 2248 tests from 50 lines
-            //expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\small", "testYouTube", false);
+            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube", false); // 2248 tests from 50 lines
+            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Play", false); // 2248 tests from 50 lines
+            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Find-OrderBy", false); // 2248 tests from 50 lines
+            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Find-ResourceType", false); // 2248 tests from 50 lines
+            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Find-VideoType", false); // 2248 tests from 50 lines
+            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Find-Time", false); // 2248 tests from 50 lines
+            expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-Find-Time-combinations", false); // 2248 tests from 50 lines
+//expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\small", "testYouTube", false);
             //expandFile("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testDataTemplate", false);
         }
     }
