@@ -15,23 +15,22 @@ public class TestFileGenerator {
             String line = inputStream.readLine();
             // If this is not a container file, just expand this file
             if (line != null) {
+                ArrayList<String> lines;
                 if (!line.equals("#TestFileGenerator container#")) {
-                    expandFile(baseDir, fileName, false);
-                    return;
+                    lines = expandFile(baseDir, fileName, false);
+                } else {
+                    lines = new ArrayList<>();
+                    // This is a container file
+                    do {
+                        //System.out.println("line = " + line);
+                        // Expand all not commented lines
+                        if (line.length() > 0 && !line.substring(0, 1).equals("#")) {
+                            ArrayList<String> newLines = expandFile(baseDir, line, false);
+                            System.out.println("got " + newLines.size() + " lines from " + line);
+                            lines.addAll(newLines);
+                        }
+                    } while ((line = inputStream.readLine()) != null);
                 }
-
-                ArrayList<String> lines = new ArrayList<>();
-                // This is a container file
-                do {
-                    //System.out.println("line = " + line);
-                    // Expand all not commented lines
-                    if (line.length() > 0 && !line.substring(0, 1).equals("#")) {
-                        ArrayList<String> newLines = expandFile(baseDir, line, false);
-                        System.out.println("got " + newLines.size() + " lines from " + line);
-                        lines.addAll(newLines);
-                    }
-                } while ((line = inputStream.readLine()) != null);
-
                 String resultsFileName = "\\results_" + fileName + ".txt";
                 PrintWriter outputStream = new PrintWriter(new FileWriter(baseDir + resultsFileName));
                 for (String outputLine : lines) {
@@ -155,12 +154,13 @@ public class TestFileGenerator {
         if (args.length == 2) {
             expandFiles(args[0], args[1]);
         } else {
-            //expandFiles("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-all-old");
-            expandFiles("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters", "test-youtube-all");
+            String baseDir = "C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters";
+            //expandFiles(baseDir, "test-youtube-all-old");
+            //expandFiles(baseDir, "test-youtube-all");
 
-            //expandFiles("C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\small", "testYouTube");
-            //expandFiles("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testYouTube-Play"); // 2248 tests from 50 lines
-            //expandFiles("C:\\samsung\\can-central-AB\\primary\\youtube\\tests", "testYouTube-Find-resourceType");
+            expandFiles(baseDir, "test-youtube-Find-VideoType");
+            //expandFiles(baseDir, "testYouTube-Play"); // 2248 tests from 50 lines
+            //expandFiles(baseDir, "testYouTube-Find-resourceType");
         }
     }
 }
