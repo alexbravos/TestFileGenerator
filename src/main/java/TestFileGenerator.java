@@ -75,7 +75,8 @@ public class TestFileGenerator {
 
                 String line;
                 while ((line = inputStream.readLine()) != null) {
-                    if (line.length() > 0) {
+                    // Only work on non-commented lines
+                    if (line.length() > 0 && !line.substring(0, 1).equals("#")) {
                         String expansionFileName = baseDir + "\\variations\\" + expansionName + ".txt";
                         BufferedReader expansionInputStream =
                                 new BufferedReader(new FileReader(expansionFileName));
@@ -131,7 +132,8 @@ public class TestFileGenerator {
 
         	String line;
             while ((line = inputStream.readLine()) != null) {
-                if (line.length() > 0) {
+                // Only work on non-commented lines
+                if (line.length() > 0 && !line.substring(0, 1).equals("#")) {
                     //System.out.println("line = " + line);
 
                     Pattern pattern = Pattern.compile("\\[(\\S+)]");   // the pattern to search for
@@ -155,10 +157,12 @@ public class TestFileGenerator {
             expandFiles(args[0], args[1]);
         } else {
             String baseDir = "C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters";
+            expandFiles(baseDir, "test-youtube-Find-VideoType");
+            //expandFiles(baseDir, "test-youtube-Find-OrderBy");
             //expandFiles(baseDir, "test-youtube-all-old");
+
             //expandFiles(baseDir, "test-youtube-all");
 
-            expandFiles(baseDir, "test-youtube-Find-VideoType");
             //expandFiles(baseDir, "testYouTube-Play"); // 2248 tests from 50 lines
             //expandFiles(baseDir, "testYouTube-Find-resourceType");
         }
