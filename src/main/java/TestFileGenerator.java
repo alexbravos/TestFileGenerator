@@ -156,15 +156,16 @@ public class TestFileGenerator {
         if (args.length == 2) {
             expandFiles(args[0], args[1]);
         } else {
-            String baseDir = "C:\\samsung\\can-central-AB\\primary\\youtube\\tests\\filters";
-            expandFiles(baseDir, "test-youtube-Find-VideoType");
-            //expandFiles(baseDir, "test-youtube-Find-OrderBy");
+            String baseDir = "C:\\samsung\\can-central-AB\\primary\\youtube\\tests";
+            
+            expandFiles(baseDir, "test-youtube-all");
+
+            //expandFiles(baseDir, "test-youtube-Play-ResourceType");
+            //expandFiles(baseDir, "test-youtube-Play-VideoType");
             //expandFiles(baseDir, "test-youtube-all-old");
 
-            //expandFiles(baseDir, "test-youtube-all");
-
             //expandFiles(baseDir, "testYouTube-Play"); // 2248 tests from 50 lines
-            //expandFiles(baseDir, "testYouTube-Find-resourceType");
+            //expandFiles(baseDir, "testYouTube-Find-ResourceType");
         }
     }
 }
